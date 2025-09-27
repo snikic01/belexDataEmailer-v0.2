@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Belex Watcher</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 18px; background:#f6f8fb; color:#0f172a; }
+    h1 { margin:0 0 8px 0; font-size:20px; }
+    .controls { margin:12px 0 18px; display:flex; gap:8px; align-items:center; }
+    button { padding:8px 12px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; cursor:pointer; }
+    button.primary { background:#0ea5a4; color:#fff; border-color:transparent; }
+    .status { margin-left:auto; color:#475569; font-size:13px; }
+    table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+    th,td { padding:10px; border-bottom:1px solid #eef2f7; text-align:left; }
+    th { background:#f8fafc; font-weight:600; }
+    .muted { color:#6b7280; font-size:13px; }
+    .alert { color:#b91c1c; font-weight:700; }
+  </style>
+</head>
+<body>
+  <h1>Belex Watcher — Live from server</h1>
+  <div class="controls">
+    <button id="refresh">Osveži prikaz</button>
+    <button id="checkNow" class="primary">Proveri sada (server)</button>
+    <div id="status" class="status">Nije učitano</div>
+  </div>
+
+  <table aria-describedby="prices">
+    <thead>
+      <tr>
+        <th>Oznaka</th>
+        <th>Poslednja cena</th>
+        <th>Vreme (lokalno)</th>
+        <th>Napomena</th>
+      </tr>
+    </thead>
+    <tbody id="list">
+      <tr><td colspan="4" class="muted">Učitavanje...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    // Mora da odgovara server.SYMBOLS
+    const SYMBOLS = ["JESV","NIIS","IMPL","MTLC","DNOS","DINN","DINNPB","AERO","TGAS","FINT","INFM","ENHL","ZTPK"];
+    const listEl = document.getElementById('list');
+    const statusEl = document.getElementById('status');
+    const refreshBtn = document.getElementById('refresh');
+    const checkBtn = document.getElementById('checkNow');
+
+    function fmtDate(ts){ if(!ts) return '—'; try { return new Date(ts).toLocaleString(); } catch(e){ return '—'; } }
+
+    function makeRow(symbol){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${symbol}</td>
+                      <td id="p-${symbol}">—</td>
+                      <td id="t-${symbol}">—</td>
+                      <td id="n-${symbol}" class="muted"></td>`;
+      return tr;
+    }
+
+    // inicijalni prikaz
+    listEl.innerHTML = '';
+    for (const s of SYMBOLS) listEl.appendChild(makeRow(s));
+
+    async function fetchPrice(symbol){
+      try {
+        // RELATIVNI URL: radi ako otvoris http://localhost:3000/index.html
+        const res = await fetch('../api/price/' + encodeURIComponent(symbol));
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch(err){
+        return { error: err.message };
+      }
+    }
+
+    async function refresh(){
+      statusEl.textContent = 'Učitavam...';
+      for (const s of SYMBOLS){
+        const data = await fetchPrice(s);
+        const pEl = document.getElementById('p-' + s);
+        const tEl = document.getElementById('t-' + s);
+        const nEl = document.getElementById('n-' + s);
+
+        if (data.error) {
+          pEl.textContent = '—';
+          tEl.textContent = '—';
+          nEl.textContent = 'Greška: ' + data.error;
+          pEl.classList.remove('alert');
+        } else {
+          pEl.textContent = data.last ?? '—';
+          tEl.textContent = data.ts ? fmtDate(data.ts) : '—';
+          nEl.textContent = '';
+          pEl.classList.remove('alert');
+        }
+      }
+      statusEl.textContent = 'Ažurirano: ' + new Date().toLocaleTimeString();
+    }
+
+    refreshBtn.onclick = refresh;
+
+    checkBtn.onclick = async () => {
+      checkBtn.disabled = true;
+      checkBtn.textContent = 'Proveravam...';
+      try {
+        // poziva tvoj server endpoint; server će raditi checkAll u pozadini
+        const res = await fetch('/api/check-now', { method: 'POST' });
+        const j = await res.json();
+        if (j.ok) {
+          statusEl.textContent = 'Server pokrenuo proveru: ' + new Date().toLocaleTimeString();
+        } else {
+          statusEl.textContent = 'Server error: ' + (j.error || 'unknown');
+        }
+      } catch (err){
+        statusEl.textContent = 'Greška: ' + err.message;
+      } finally {
+        checkBtn.disabled = false;
+        checkBtn.textContent = 'Proveri sada (server)';
+      }
+    };
+
+    // auto refresh svake 30s
+    refresh();
+    setInterval(refresh, 30000);
+  </script>
+</body>
+</html>

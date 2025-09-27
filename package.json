@@ -1,0 +1,29 @@
+{
+  "name": "belexdataemailer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "cheerio": "^1.1.2",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "mailparser": "^3.7.4",
+    "node-cron": "^4.2.1",
+    "node-fetch": "^2.7.0",
+    "node-imap": "^0.9.6",
+    "nodemailer": "^7.0.6",
+    "puppeteer": "^24.22.2"
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
