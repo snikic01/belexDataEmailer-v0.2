@@ -246,6 +246,7 @@ function extractSymbolFromText(text) {
 }
 
 // zameni postojeću replyWithPrice funkciju ovim kodom
+// zameni postojeću replyWithPrice funkciju ovim kodom
 async function replyWithPrice(toEmail, origSubject, symbol) {
   try {
     // rate-limit check (isti kao pre)
@@ -306,6 +307,7 @@ async function replyWithPrice(toEmail, origSubject, symbol) {
     return false;
   }
 }
+
 
 
 function startImapListener() {
