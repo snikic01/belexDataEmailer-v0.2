@@ -129,14 +129,14 @@ async function sendAlertEmail(symbol, prev, current, change) {
     return;
   }
 
-  const subject = `ALERT: ${symbol} pao ${change.toFixed(2)}%`;
-  const text = `${symbol} je pao sa ${prev} na ${current} (${change.toFixed(2)}%).`;
+  const subject = `ALERT: ${symbol} se promenio ${change.toFixed(2)}%`;
+  const text = `${symbol} se promenila sa ${prev} na ${current} (${change.toFixed(2)}%).`;
   const mail = {
     from: EMAIL_USER,
     to: ALERT_TO_LIST,
     subject,
     text,
-    html: `<p><b>${symbol}</b> je pao sa <b>${prev}</b> na <b>${current}</b> (<b>${change.toFixed(2)}%</b>).</p>`
+    html: `<p><b>${symbol}</b> se promenio sa <b>${prev}</b> na <b>${current}</b> (<b>${change.toFixed(2)}%</b>).</p>`
   };
 
   try {
