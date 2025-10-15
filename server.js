@@ -91,9 +91,37 @@ async function fetchPricePuppeteer(page, symbol) {
   return price;
 }
 
-/////////////////////
-// Alert emailing  //
-/////////////////////
+async function sendAlertEmail(symbol, prev, current, change) {
+  if (!EMAIL_USER || !EMAIL_PASS) {
+    console.log('Email not sent (no credentials). Alert would be:', symbol, prev, current, change);
+    return;
+  }
+
+  /////////////////////////
+  // Alert emailing +5%  //
+  /////////////////////////
+
+  const subject = `ALERT: ${symbol} skocio ${change.toFixed+(2)}%`;
+  const text = `${symbol} je skocio sa ${prev} na ${current} (${change.toFixed+(2)}%).`;
+  const mail = {
+    from: EMAIL_USER,
+    to: ALERT_TO_LIST,
+    subject,
+    text,
+    html: `<p><b>${symbol}</b> je skocio na <b>${prev}</b> sa <b>${current}</b> (<b>${change.toFixed+(2)}%</b>).</p>`
+  };
+
+  try {
+    const info = await transporter.sendMail(mail);
+    console.log('Email poslat:', subject, info && (info.messageId || info.response));
+  } catch (err) {
+    console.error('Greška pri slanju alert emaila:', err && err.message ? err.message : err);
+  }
+}
+
+/////////////////////////
+// Alert emailing -5%  //
+/////////////////////////
 
 async function sendAlertEmail(symbol, prev, current, change) {
   if (!EMAIL_USER || !EMAIL_PASS) {
@@ -142,11 +170,12 @@ async function checkAndAlertSymbol(page, symbol) {
         else throw err;
       }
     }
-
+    
+    //Pad od 5%
     const prev = prices[symbol] ? prices[symbol].last : null;
     console.log(new Date().toISOString(), symbol, 'current', current, 'prev', prev);
 
-    // emit SSE price event
+    // emit SSE price event -5%
     try { sseSend({ type:'price', symbol, current, prev, ts: Date.now() }); } catch(e){}
 
     if (prev !== null) {
@@ -154,6 +183,9 @@ async function checkAndAlertSymbol(page, symbol) {
       if (change <= -5) {
         await sendAlertEmail(symbol, prev, current, change);
         try { sseSend({ type:'status', msg:`ALERT ${symbol} ${change.toFixed(2)}%` }); } catch(e){}
+      } else if (change >= 5) {
+        await sendAlertEmail(symbol, prev, current, change);
+        try { sseSend({ type:'status', msg:`ALERT ${symbol} ${change.toFixed+(2)}%` }); } catch(e){}
       }
     }
     prices[symbol] = { last: current, ts: Date.now() };
@@ -163,6 +195,9 @@ async function checkAndAlertSymbol(page, symbol) {
     try { sseSend({ type:'status', msg:`Error checking ${symbol}: ${err.message}` }); } catch(e){}
   }
 }
+
+// To implement +5% alert logic, merge it into the checkAndAlertSymbol function above.
+// Remove this misplaced block to fix the syntax error.
 
 async function checkAll(browser) {
   for (const sym of SYMBOLS) {
