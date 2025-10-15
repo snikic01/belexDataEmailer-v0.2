@@ -16,7 +16,7 @@ const { simpleParser } = require('mailparser');
 //////////////////////
 
 const PORT = process.env.PORT || 3000;
-const SYMBOLS = ["JESV","NIIS","IMPL","MTLC","DNOS","DINN","DINNPB","AERO","TGAS","FINT","INFM","ENHL","ZTPK","DNREM"];
+const SYMBOLS = ["JESV","NIIS","IMPL","MTLC","DNOS","DINN","DINNPB","AERO","TGAS","FINT","INFM","ENHL","ZTPK","DNREM","GFOM"];
 const DB_FILE = path.join(__dirname, 'prices.json');
 
 let prices = {};
