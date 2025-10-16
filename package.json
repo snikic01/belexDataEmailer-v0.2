@@ -1,10 +1,11 @@
 {
   "name": "belexdataemailer",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -22,7 +23,6 @@
     "nodemailer": "^7.0.6",
     "puppeteer": "^24.22.2"
   },
-  "type": "commonjs",
   "devDependencies": {
     "nodemon": "^3.1.10"
   }
